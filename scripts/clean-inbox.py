@@ -19,6 +19,15 @@ def run(cmd, check=True):
     return result
 
 
+def create_label_if_missing(account, label):
+    try:
+        run(["gog", "gmail", "labels", "create", label, "--account", account, "--no-input"])
+    except RuntimeError as e:
+        # Handle concurrent/repeated creation safely.
+        if "already exists" not in str(e).lower():
+            raise
+
+
 def load_account(account_arg):
     if account_arg:
         return account_arg
@@ -220,7 +229,26 @@ def batch_add_label(account, label, ids, dry_run, batch_size=100):
     for batch_idx, i in enumerate(range(0, len(ids), batch_size), start=1):
         batch = ids[i : i + batch_size]
         print(f"    打标批次: label={label} {batch_idx}/{total_batches} ({len(batch)} 封)")
+<<<<<<< HEAD
+        run(
+            [
+                "gog",
+                "gmail",
+                "batch",
+                "modify",
+                *batch,
+                "--add",
+                label,
+                "--remove",
+                "UNREAD",
+                "--account",
+                account,
+                "--no-input",
+            ]
+        )
+=======
         run(["gog", "gmail", "batch", "modify", *batch, "--add", label, "--account", account, "--no-input"])
+>>>>>>> origin/main
         success += len(batch)
     return success, 0
 
@@ -326,7 +354,11 @@ def main():
             sender_name = sanitize_label_segment(extract_sender_name(msg.get("from", "")))
             chosen = f"Auto/{sender_name}"
             if chosen not in label_set and not args.dry_run:
+<<<<<<< HEAD
+                create_label_if_missing(account, chosen)
+=======
                 run(["gog", "gmail", "labels", "create", chosen, "--account", account, "--no-input"])
+>>>>>>> origin/main
             if chosen not in label_set:
                 created_labels.add(chosen)
                 label_list.append(chosen)
